@@ -1,0 +1,7 @@
+# all CPython byte-compiled files
+*.py[oc]
+__pycache__
+# vim temporary files
+.*.swp
+
+README.html
