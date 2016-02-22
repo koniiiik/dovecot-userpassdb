@@ -42,7 +42,6 @@ class UserPassDBEntry(object):
         Intended to simplify testing. Can assume the presence of
         attributes pwd, homedir.
         """
-        # TODO: read from os.environ; define available substitutions
         return FILENAME_TEMPLATE.format(homedir=self.homedir)
 
     def read_imaprc(self):
@@ -85,44 +84,44 @@ class UserPassDBEntry(object):
             'EXTRA': 'userdb_uid userdb_gid',
         }
 
+    @classmethod
+    def checkpass(cls, argv):
+        """Implementation of the checkpassword protocol.
+        """
+        with os.fdopen(3) as infile:
+            data = infile.read(512).split('\0')
+        username, password = data[:2]
 
-def checkpass(klass=UserPassDBEntry):
-    """Implementation of the checkpassword protocol.
-    """
-    with os.fdopen(3) as infile:
-        data = infile.read(512).split('\0')
-    username, password = data[:2]
+        db_entry = cls(username)
 
-    db_entry = klass(username)
+        if not db_entry.verify_password(password):
+            return 1
 
-    if not db_entry.verify_password(password):
-        return 1
+        os.environ.update(db_entry.get_dovecot_environ())
+        os.execvp(argv[1], argv[1:])
 
-    os.environ.update(db_entry.get_dovecot_environ())
-    os.execvp(sys.argv[1], sys.argv[1:])
+    @classmethod
+    def checkpass_main(cls, argv=sys.argv):
+        """Main entry point for checkpassword. Wraps checkpass for error
+        handling.
+        """
+        try:
+            return cls.checkpass(argv) or 111
+        except Exception:
+            # TODO: proper logging?
+            traceback.print_exc(file=sys.stderr)
+            return 111
 
+    @classmethod
+    def change_password(cls):
+        current_user = getpass.getuser()
+        db_entry = cls(current_user)
 
-def checkpass_main(klass=UserPassDBEntry):
-    """Main entry point for checkpassword. Wraps checkpass for error
-    handling.
-    """
-    try:
-        return checkpass(klass=klass) or 111
-    except Exception:
-        # TODO: proper logging?
-        traceback.print_exc(file=sys.stderr)
-        return 111
+        new_pass1 = getpass.getpass("New IMAP password: ")
+        new_pass2 = getpass.getpass("New IMAP password (again): ")
 
+        if new_pass1 != new_pass2:
+            raise ValueError("Provided passwords do not match.")
 
-def change_password(klass=UserPassDBEntry):
-    current_user = getpass.getuser()
-    db_entry = klass(current_user)
-
-    new_pass1 = getpass.getpass("New IMAP password: ")
-    new_pass2 = getpass.getpass("New IMAP password (again): ")
-
-    if new_pass1 != new_pass2:
-        raise ValueError("Provided passwords do not match.")
-
-    db_entry.set_password(new_pass1)
-    db_entry.write_imaprc()
+        db_entry.set_password(new_pass1)
+        db_entry.write_imaprc()

@@ -70,8 +70,10 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'dovecot-checkpass=dovecot_userpassdb:checkpass_main',
-            'imap-passwd=dovecot_userpassdb:change_password',
+            'dovecot-checkpass=dovecot_userpassdb:'
+                'UserPassDBEntry.checkpass_main',
+            'imap-passwd=dovecot_userpassdb:'
+                'UserPassDBEntry.change_password',
         ],
     },
 )
