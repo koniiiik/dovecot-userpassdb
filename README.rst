@@ -18,14 +18,14 @@ Installation
 ------------
 
 This is a regular Python package installable using ``pip``. Obviously, it
-depends on Python (tested on 3.3+). If you're feeling adventurous, just
+depends on Python (tested on 3.4+). If you're feeling adventurous, just
 run ``pip install dovecot-userpassdb`` as root to have everything
 installed inside ``/usr/local``. If you prefer to keep things tidy and
 isolated, you can follow these steps instead:
 
 #. Create a Python virtualenv::
 
-    # python -m venv /usr/local/venv-dovecot-userpassdb  # for Python 3
+    # python -m venv /usr/local/venv-dovecot-userpassdb
     # PIP="/usr/local/venv-dovecot-userpassdb/bin/pip"
     # $PIP install -U pip                                # to be up-to-date
 
