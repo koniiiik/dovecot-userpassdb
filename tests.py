@@ -1,5 +1,6 @@
-import multiprocessing
+import json
 import os
+import sys
 import unittest
 
 import dovecot_userpassdb
@@ -22,10 +23,52 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(get_test_dir())
 
-    def run_checkpass(self):
-        self.fail("Implement me!")
-        proc = None
-        return proc.exitcode
+    def run_checkpass(self, username, password):
+        """Run checkpass in a subprocess, and return its result.
+
+        Calls the checkpass main function in a subprocess, sends it a
+        username, and a password, and instructs it to run ./dump_env.py on
+        success, which dumps its os.environ as a JSON dict into FD 4.
+
+        Returns the environment dict.
+        """
+        pass_read_fd, pass_write_fd = os.pipe()
+        res_read_fd, res_write_fd = os.pipe()
+        os.set_inheritable(pass_read_fd, True)
+        os.set_inheritable(res_write_fd, True)
+
+        child_pid = os.fork()
+        if child_pid == 0:
+            # Child process.
+            os.close(pass_write_fd)
+            os.close(res_read_fd)
+            os.dup2(pass_read_fd, 3)
+            os.dup2(res_write_fd, 4)
+            argv = [sys.argv[0], "./dump_env.py"]
+            TestUserPassDBEntry.checkpass_main(argv=argv)
+            sys.exit(47) # not reached
+
+        # Parent process.
+        os.close(pass_read_fd)
+        os.close(res_write_fd)
+
+        with os.fdopen(pass_write_fd, 'w') as f:
+            f.write('\0'.join([username, password, '']))
+
+        pid, status = os.waitpid(child_pid, 0)
+
+        signal = status & 0xff
+        status_val = (status & (0xff << 8)) >> 8
+        # TODO: The caller needs to verify error status codes in some
+        # cases. A lot of cases, actually. Like then the password
+        # verification fails.
+        self.assertEqual(signal, 0, "Child killed by signal {}.".format(signal))
+        self.assertEqual(status_val, 0, "Child returned {}.".format(status_val))
+
+        with os.fdopen(res_read_fd, 'r') as f:
+            environment = json.read(f)
+
+        return environment
 
     def test_checkpass_fails_before_password_set(self):
         self.fail("Implement me!")
@@ -34,6 +77,9 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         self.fail("Implement me!")
 
     def test_checkpass_succeeds_correct_password(self):
+        self.fail("Implement me!")
+
+    def test_password_upgrade(self):
         self.fail("Implement me!")
 
     def test_extra_mail_location(self):
