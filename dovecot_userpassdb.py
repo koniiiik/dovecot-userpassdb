@@ -24,8 +24,7 @@ class UserPassDBEntry(object):
     def __init__(self, username):
         self.loaded_file = False
         self.need_update = False
-        # So that we have a fallback of correct length.
-        self.pw_hash = crypt_context.encrypt('')
+        self.pw_hash = None
 
         try:
             self.pwd = pwd.getpwnam(username)
@@ -51,7 +50,7 @@ class UserPassDBEntry(object):
         except IOError:
             return
         self.loaded_file = True
-        self.pw_hash = attrs.get('password', None) or self.pw_hash
+        self.pw_hash = attrs.get('password', self.pw_hash)
 
     def write_imaprc(self):
         args = {
@@ -65,6 +64,9 @@ class UserPassDBEntry(object):
             raise
 
     def verify_password(self, password):
+        if not self.pw_hash:
+            return False
+
         valid, new_hash = crypt_context.verify_and_update(password,
                                                           self.pw_hash)
         # TODO: update stuff...?
