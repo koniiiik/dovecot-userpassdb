@@ -18,7 +18,7 @@ crypt_context = CryptContext(
 )
 
 
-def UserPassDBEntry(object):
+class UserPassDBEntry(object):
     """Represents one user's Dovecot settings.
     """
     def __init__(self, username):
