@@ -44,6 +44,7 @@ class UserPassDBEntry(object):
         return FILENAME_TEMPLATE.format(homedir=self.homedir)
 
     def read_imaprc(self):
+        # TODO: lock the file?
         try:
             with open(self.filename) as f:
                 attrs = json.load(f)
@@ -53,12 +54,13 @@ class UserPassDBEntry(object):
         self.pw_hash = attrs.get('password', self.pw_hash)
 
     def write_imaprc(self):
-        args = {
+        # TODO: lock the file?
+        state = {
             'password': self.pw_hash,
         }
         try:
             with open(self.filename, 'w') as f:
-                json.dump(f)
+                json.dump(state, f)
         except IOError:
             # TODO
             raise

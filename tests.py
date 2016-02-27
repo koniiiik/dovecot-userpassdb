@@ -13,9 +13,14 @@ def get_test_dir():
 get_test_dir.__test__ = False
 
 
+def get_test_filename():
+    return os.path.join(get_test_dir(), 'imaprc.json')
+get_test_filename.__test__ = False
+
+
 class TestUserPassDBEntry(dovecot_userpassdb.UserPassDBEntry):
     def get_filename(self):
-        return os.path.join(get_test_dir(), 'imaprc.json')
+        return get_test_filename()
 
 
 class CheckpassError(Exception):
@@ -82,6 +87,16 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         with self.assertRaisesRegex(CheckpassError, '^1$'):
             self.run_checkpass('user', 'password')
 
+    def test_set_password(self):
+        TestUserPassDBEntry.set_and_write_password('user', 'password123')
+        with open(get_test_filename(), 'r') as f:
+            imaprc_state = json.load(f)
+
+        self.assertIn('password', imaprc_state)
+        self.assertTrue(dovecot_userpassdb.crypt_context.verify(
+            'password123', imaprc_state['password']
+        ))
+
     def test_checkpass_fails_wrong_password(self):
         self.fail("Implement me!")
 
@@ -92,7 +107,4 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         self.fail("Implement me!")
 
     def test_extra_mail_location(self):
-        self.fail("Implement me!")
-
-    def test_set_password(self):
         self.fail("Implement me!")
