@@ -10,6 +10,7 @@ import dovecot_userpassdb
 def get_test_dir():
     here = os.path.abspath(os.path.dirname(__file__))
     return os.path.join(here, 'test_data')
+get_test_dir.__test__ = False
 
 
 class TestUserPassDBEntry(dovecot_userpassdb.UserPassDBEntry):
