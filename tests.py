@@ -15,7 +15,7 @@ get_test_dir.__test__ = False
 
 class TestUserPassDBEntry(dovecot_userpassdb.UserPassDBEntry):
     def get_filename(self):
-        return get_test_dir()
+        return os.path.join(get_test_dir(), 'imaprc.json')
 
 
 class CheckpassError(Exception):
