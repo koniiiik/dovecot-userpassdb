@@ -11,7 +11,7 @@ def get_test_dir():
     return os.path.join(here, 'test_data')
 
 
-class TestUserPassDBEntry(dovecot_userpassdb.UserPassDBEntry)
+class TestUserPassDBEntry(dovecot_userpassdb.UserPassDBEntry):
     def get_filename(self):
         return get_test_dir()
 
