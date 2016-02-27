@@ -83,8 +83,8 @@ class UserPassDBEntry(object):
         return {
             'USER': self.pwd.pw_name,
             'HOME': self.homedir,
-            'userdb_uid': self.pwd.pw_uid,
-            'userdb_gid': self.pwd.pw_gid,
+            'userdb_uid': str(self.pwd.pw_uid),
+            'userdb_gid': str(self.pwd.pw_gid),
             'EXTRA': 'userdb_uid userdb_gid',
         }
 
