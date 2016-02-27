@@ -16,6 +16,7 @@ crypt_context = CryptContext(
     schemes=('pbkdf2_sha512', 'bcrypt', 'sha512_crypt'),
     default='pbkdf2_sha512',
 )
+EMPTY_PWHASH = crypt_context.encrypt('')
 
 
 class UserPassDBEntry(object):
@@ -66,11 +67,13 @@ class UserPassDBEntry(object):
             raise
 
     def verify_password(self, password):
+        valid, new_hash = crypt_context.verify_and_update(
+            password, self.pw_hash or EMPTY_PWHASH
+        )
+
         if not self.pw_hash:
             return False
 
-        valid, new_hash = crypt_context.verify_and_update(password,
-                                                          self.pw_hash)
         # TODO: update stuff...?
         return valid
 
