@@ -1,5 +1,6 @@
 import json
 import os
+import pwd
 import shutil
 import sys
 import unittest
@@ -122,10 +123,15 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
             self.run_checkpass('user', 'wrong password')
 
     def test_checkpass_succeeds_correct_password(self):
-        TestUserPassDBEntry.set_and_write_password('user', 'password123')
-        env = self.run_checkpass('user', 'password123')
-        self.assertIn('EXTRA', env)
+        TestUserPassDBEntry.set_and_write_password('nobody', 'password123')
+        env = self.run_checkpass('nobody', 'password123')
         self.assertEqual(env['EXTRA'], 'userdb_uid userdb_gid')
+
+        nobody_pwd = pwd.getpwnam('nobody')
+        self.assertEqual(env['USER'], 'nobody')
+        self.assertEqual(env['HOME'], nobody_pwd.pw_dir)
+        self.assertEqual(env['userdb_uid'], str(nobody_pwd.pw_uid))
+        self.assertEqual(env['userdb_gid'], str(nobody_pwd.pw_gid))
 
     @unittest.skip("TODO")
     def test_password_upgrade(self):
