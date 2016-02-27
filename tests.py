@@ -73,10 +73,11 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         signal = status & 0xff
         status_val = (status & (0xff << 8)) >> 8
         self.assertEqual(signal, 0, "Child killed by signal {}.".format(signal))
-        raise CheckpassError(str(status_val))
+        if status_val:
+            raise CheckpassError(str(status_val))
 
         with os.fdopen(res_read_fd, 'r') as f:
-            environment = json.read(f)
+            environment = json.load(f)
 
         return environment
 
@@ -87,7 +88,7 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         with self.assertRaisesRegex(CheckpassError, '^1$'):
             self.run_checkpass('user', 'password')
 
-    def test_set_password(self):
+    def test_set_new_password(self):
         TestUserPassDBEntry.set_and_write_password('user', 'password123')
         with open(get_test_filename(), 'r') as f:
             imaprc_state = json.load(f)
@@ -98,10 +99,16 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         ))
 
     def test_checkpass_fails_wrong_password(self):
-        self.fail("Implement me!")
+        TestUserPassDBEntry.set_and_write_password('user', 'password123')
+
+        with self.assertRaisesRegex(CheckpassError, '^1$'):
+            self.run_checkpass('user', 'wrong password')
 
     def test_checkpass_succeeds_correct_password(self):
-        self.fail("Implement me!")
+        TestUserPassDBEntry.set_and_write_password('user', 'password123')
+        env = self.run_checkpass('user', 'password123')
+        self.assertIn('EXTRA', env)
+        self.assertEqual(env['EXTRA'], 'userdb_uid userdb_gid')
 
     def test_password_upgrade(self):
         self.fail("Implement me!")
