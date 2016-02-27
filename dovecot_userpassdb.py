@@ -115,15 +115,20 @@ class UserPassDBEntry(object):
             return 111
 
     @classmethod
-    def change_password(cls):
-        current_user = getpass.getuser()
-        db_entry = cls(current_user)
+    def set_and_write_password(cls, username, password):
+        db_entry = cls(username)
+        db_entry.set_password(password)
+        db_entry.write_imaprc()
 
+    @classmethod
+    def change_password(cls):
+        """Entry point for password change.
+        """
+        current_user = getpass.getuser()
         new_pass1 = getpass.getpass("New IMAP password: ")
         new_pass2 = getpass.getpass("New IMAP password (again): ")
 
         if new_pass1 != new_pass2:
             raise ValueError("Provided passwords do not match.")
 
-        db_entry.set_password(new_pass1)
-        db_entry.write_imaprc()
+        cls.set_and_write_password(current_user, new_pass1)
