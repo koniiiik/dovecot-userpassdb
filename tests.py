@@ -98,6 +98,23 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
             'password123', imaprc_state['password']
         ))
 
+    def test_change_password(self):
+        TestUserPassDBEntry.set_and_write_password('user', 'password123')
+
+        with open(get_test_filename(), 'r') as f:
+            imaprc_state = json.load(f)
+
+        self.assertIn('password', imaprc_state)
+
+        TestUserPassDBEntry.set_and_write_password('user', 'password456')
+        with open(get_test_filename(), 'r') as f:
+            imaprc_state = json.load(f)
+
+        self.assertIn('password', imaprc_state)
+        self.assertTrue(dovecot_userpassdb.crypt_context.verify(
+            'password456', imaprc_state['password']
+        ))
+
     def test_checkpass_fails_wrong_password(self):
         TestUserPassDBEntry.set_and_write_password('user', 'password123')
 
