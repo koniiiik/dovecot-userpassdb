@@ -76,7 +76,11 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         return environment
 
     def test_checkpass_fails_before_password_set(self):
-        self.fail("Implement me!")
+        with self.assertRaisesRegex(CheckpassError, '^1$'):
+            self.run_checkpass('user', '')
+
+        with self.assertRaisesRegex(CheckpassError, '^1$'):
+            self.run_checkpass('user', 'password')
 
     def test_checkpass_fails_wrong_password(self):
         self.fail("Implement me!")
