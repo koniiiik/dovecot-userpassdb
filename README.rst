@@ -10,9 +10,6 @@ Future plans include:
 
 * setting additional attributes (such as ``mail`` to override the
   system-default ``mail_location``)
-* long-running Dovecot dict server for higher-traffic sites (Open
-  question: Does this even make sense? On high-traffic sites with many
-  users, LDAP makes a lot of sense...)
 
 Installation
 ------------
