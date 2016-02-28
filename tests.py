@@ -3,6 +3,7 @@ import os
 import pwd
 import shutil
 import sys
+import time
 import unittest
 
 import dovecot_userpassdb
@@ -132,6 +133,36 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         self.assertEqual(env['HOME'], nobody_pwd.pw_dir)
         self.assertEqual(env['userdb_uid'], str(nobody_pwd.pw_uid))
         self.assertEqual(env['userdb_gid'], str(nobody_pwd.pw_gid))
+
+    def test_timing_without_configured_password(self):
+        TestUserPassDBEntry.set_and_write_password('nobody', 'password123')
+
+        # Just to see that it's correct.
+        self.run_checkpass('nobody', 'password123')
+
+        # To reduce the impact of outliers.
+        checkpass_rounds = 5
+
+        # We need monotonic() here, not clock(), because the actual CPU
+        # time is spent in subprocesses.
+        start = time.monotonic()
+        for i in range(checkpass_rounds):
+            with self.assertRaisesRegex(CheckpassError, '^1$'):
+                self.run_checkpass('nobody', 'password456')
+        end = time.monotonic()
+        successful_time = end - start
+
+        os.unlink(get_test_filename())
+
+        start = time.monotonic()
+        for i in range(checkpass_rounds):
+            with self.assertRaisesRegex(CheckpassError, '^1$'):
+                self.run_checkpass('nobody', 'password123')
+        end = time.monotonic()
+        unsuccessful_time = end - start
+
+        delta = 0.1 * max(successful_time, unsuccessful_time)
+        self.assertAlmostEqual(successful_time, unsuccessful_time, delta=delta)
 
     @unittest.skip("TODO")
     def test_password_upgrade(self):
