@@ -64,7 +64,7 @@ setup(
     # for example:
     # $ pip install -e .[dev,test]
     extras_require={
-        'test': ['coverage', 'nose'],
+        'test': ['nose2'],
     },
 
     entry_points={
