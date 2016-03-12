@@ -161,7 +161,7 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         end = time.monotonic()
         unsuccessful_time = end - start
 
-        delta = 0.1 * max(successful_time, unsuccessful_time)
+        delta = 0.2 * max(successful_time, unsuccessful_time)
         self.assertAlmostEqual(successful_time, unsuccessful_time, delta=delta)
 
     @unittest.skip("TODO")
