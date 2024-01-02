@@ -20,7 +20,7 @@ def get_test_filename():
 get_test_filename.__test__ = False
 
 
-class TestUserPassDBEntry(dovecot_userpassdb.UserPassDBEntry):
+class CustomUserPassDBEntry(dovecot_userpassdb.UserPassDBEntry):
     def get_filename(self):
         return get_test_filename()
 
@@ -61,7 +61,7 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
             os.dup2(res_write_fd, 4)
             argv = [sys.argv[0], "./dump_env.py"]
             # We need to skip the unittest error handlers here.
-            os._exit(TestUserPassDBEntry.checkpass_main(argv=argv))
+            os._exit(CustomUserPassDBEntry.checkpass_main(argv=argv))
 
         # Parent process.
         os.close(pass_read_fd)
@@ -91,7 +91,7 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
             self.run_checkpass('user', 'password')
 
     def test_set_new_password(self):
-        TestUserPassDBEntry.set_and_write_password('user', 'password123')
+        CustomUserPassDBEntry.set_and_write_password('user', 'password123')
         with open(get_test_filename(), 'r') as f:
             imaprc_state = json.load(f)
 
@@ -101,14 +101,14 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         ))
 
     def test_change_password(self):
-        TestUserPassDBEntry.set_and_write_password('user', 'password123')
+        CustomUserPassDBEntry.set_and_write_password('user', 'password123')
 
         with open(get_test_filename(), 'r') as f:
             imaprc_state = json.load(f)
 
         self.assertIn('password', imaprc_state)
 
-        TestUserPassDBEntry.set_and_write_password('user', 'password456')
+        CustomUserPassDBEntry.set_and_write_password('user', 'password456')
         with open(get_test_filename(), 'r') as f:
             imaprc_state = json.load(f)
 
@@ -118,13 +118,13 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         ))
 
     def test_checkpass_fails_wrong_password(self):
-        TestUserPassDBEntry.set_and_write_password('user', 'password123')
+        CustomUserPassDBEntry.set_and_write_password('user', 'password123')
 
         with self.assertRaisesRegex(CheckpassError, '^1$'):
             self.run_checkpass('user', 'wrong password')
 
     def test_checkpass_succeeds_correct_password(self):
-        TestUserPassDBEntry.set_and_write_password('nobody', 'password123')
+        CustomUserPassDBEntry.set_and_write_password('nobody', 'password123')
         env = self.run_checkpass('nobody', 'password123')
         self.assertEqual(env['EXTRA'], 'userdb_uid userdb_gid')
 
@@ -135,7 +135,7 @@ class DovecotUserPassDBTestCase(unittest.TestCase):
         self.assertEqual(env['userdb_gid'], str(nobody_pwd.pw_gid))
 
     def test_timing_without_configured_password(self):
-        TestUserPassDBEntry.set_and_write_password('nobody', 'password123')
+        CustomUserPassDBEntry.set_and_write_password('nobody', 'password123')
 
         # Just to see that it's correct.
         self.run_checkpass('nobody', 'password123')
