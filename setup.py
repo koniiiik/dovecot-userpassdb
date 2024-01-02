@@ -64,7 +64,7 @@ setup(
     # for example:
     # $ pip install -e .[dev,test]
     extras_require={
-        'test': ['nose2'],
+        'test': ['pytest'],
     },
 
     entry_points={
