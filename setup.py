@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='dovecot-userpassdb',
-    version='0.1.1.dev0',
+    version='0.1.1',
     description='Dovecot user-controllable passwords',
     long_description=long_description,
     long_description_content_type='text/x-rst',
